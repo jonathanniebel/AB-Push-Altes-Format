@@ -1,0 +1,14 @@
+   // emos push
+        var trboProductId = _trbo.app.layerApi.response.rp.currentProduct.article;
+        var trboCtaLink = _trbo.app.layerApi.response.rp.currentProduct.custom21;
+        var _cornelsen_content_type = window.emos3.defaults.content;
+
+        window.emos3.send({
+            type: 'event', 
+            abtest: [ ['__TRBO_CAMPAIGN_NAME__' + ' - ' + '__TRBO_CAMPAIGN_ID__', '__TRBO_MODULE_NAME__' + ' - ' + '__TRBO_MODULE_ID__' + '/SP_' + trboProductId + ' - TP_' + trboCtaLink ]],
+            content: _cornelsen_content_type,
+            siteid: 'cornelsen.de'
+        });
+    }, 1000);
+}
+
