@@ -12,3 +12,40 @@
     }, 1000);
 }
 
+
+
+
+// Fehlerhaft, bzw. muss angepasst werden: 
+// Econda helper: sends click/impression tracking for the flyout campaign.
+// The payload format expected by the campaign is:
+// trbo/<campaignId>-<campaignName> | <device> - <variant> - <moduleId>-<moduleName> | TC_<linkText>/<targetUrl>
+window.trboSendEconda = function (linkText, targetUrl, variant) {
+    var device = window.matchMedia('(min-width: 992px)').matches ? 'Desktop' : 'Mobile';
+    var finalVariant = variant || trboTrackingConfig.defaultVariant;
+    var safeLinkText = (linkText || '').replace(/\s+/g, ' ').trim();
+    var safeTargetUrl = trboNormalizeTargetUrl(targetUrl);
+    
+
+    var payload = [
+        'trbo/' +
+        trboTrackingConfig.campaignId +
+        '-' + trboTrackingConfig.campaignName +
+        ' | ' + device +
+        ' - ' + finalVariant +
+        ' - ' + trboTrackingConfig.moduleId +
+        '-' + trboTrackingConfig.moduleName +
+        ' | TC_' + safeLinkText +
+        '/' + safeTargetUrl
+    ];
+
+    // Econda tracking is sent through the global emos3 object.
+    if (window.emos3 && typeof window.emos3.send === 'function') {
+    const contentLabel = (window.emos3.defaults && window.emos3.defaults.content) ? window.emos3.defaults.content : 'unbekannt';
+        window.emos3.send({
+            type: 'event',
+            abtest: payload,
+            content: contentLabel
+        });
+    } else {
+        console.warn('Econda is not ready yet. window.emos3.send is missing.');
+    }
