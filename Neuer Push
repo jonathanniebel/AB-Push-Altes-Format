@@ -1,0 +1,47 @@
+/**
+ * Econda Helper: Sendet Click/Impression Tracking für die Flyout-Kampagne.
+ * Passt das Payload-Format an den Standard-Stil von Cornelsen (Teil 1) an.
+ * 
+ * @param {string} linkText - Der Text des geklickten Links/CTAs
+ * @param {string} targetUrl - Die Ziel-URL des Links
+ * @param {string} [variant] - Optionale Varianten-Bezeichnung
+ */
+window.trboSendEconda = function (linkText, targetUrl, variant) {
+    // 1. Geräte-Ermittlung (Desktop vs. Mobile)
+    var device = window.matchMedia('(min-width: 992px)').matches ? 'Desktop' : 'Mobile';
+    
+    // 2. Variante festlegen (Fallback auf Konfiguration)
+    var finalVariant = variant || (window.trboTrackingConfig && window.trboTrackingConfig.defaultVariant) || '';
+    
+    // 3. Texte säubern (Mehrfach-Leerzeichen entfernen)
+    var safeLinkText = (linkText || '').replace(/\s+/g, ' ').trim();
+    
+    // 4. Target-URL normalisieren (Falls Helper-Funktion existiert, sonst Fallback)
+    var safeTargetUrl = (typeof trboNormalizeTargetUrl === 'function') 
+        ? trboNormalizeTargetUrl(targetUrl) 
+        : (targetUrl || '');
+
+    // 5. Payload im Stil von Teil 1 aufbauen:
+    // Element 1: Kampagnen-Name + ID
+    // Element 2: Device/Variant/Module Info + Link & Target
+    var campaignPart = trboTrackingConfig.campaignName + ' - ' + trboTrackingConfig.campaignId;
+    var modulePart = device + ' - ' + finalVariant + ' - ' + trboTrackingConfig.moduleId + '-' + trboTrackingConfig.moduleName + '/TC_' + safeLinkText + '/' + safeTargetUrl;
+
+    // 6. Content-Typ aus den Econda-Defaults auslesen
+    var _cornelsen_content_type = (window.emos3 && window.emos3.defaults && window.emos3.defaults.content) 
+        ? window.emos3.defaults.content 
+        : '';
+
+    // 7. Event im erwarteten Cornelsen-Format an emos3 senden
+    if (window.emos3 && typeof window.emos3.send === 'function') {
+        window.emos3.send({
+            type: 'event',
+            // Verschachteltes Array analog zu Teil 1
+            abtest: [ [ campaignPart, modulePart ] ],
+            content: _cornelsen_content_type,
+            siteid: 'cornelsen.de'
+        });
+    } else {
+        console.warn('Econda ist noch nicht bereit. window.emos3.send fehlt.');
+    }
+};
